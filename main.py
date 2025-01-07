@@ -90,6 +90,9 @@ if __name__ == "__main__":
     parser.add_argument("--ch", type = str, nargs = '*', default = None)
     parser.add_argument("--vhdr", type = str, default = None)
     parser.add_argument("--eog", type = str, default = None, nargs = '*')
+    parser.add_argument("--fontsize", type = float, default = 125)
+    parser.add_argument("--radius_ch", type = float, default = 150)
+    parser.add_argument("--file", type = str, default = os.path.join(os.path.expanduser('~'), "Documents", "montage.tiff"))
     args = parser.parse_args()
     
     ch = None
@@ -107,7 +110,6 @@ if __name__ == "__main__":
         ch = raw.pick(picks='eeg').ch_names
 
     df = pd.read_csv(ch_file, sep="\t")
-    print(df)
 
     size = (6000, 6000)
     coff = size[0]/1.5
@@ -123,14 +125,13 @@ if __name__ == "__main__":
     
     labels = [m.lower() for m in labels]
     
-    print(labels)
     idx = []
     for _ch in ch:
         if _ch.lower() in labels:
             _idx = labels.index(_ch.lower())
             idx.append(_idx)
         else:
-            raise RuntimeError("channel '%s' is not found in ced file"%_ch.lower())
+            raise RuntimeError("channel '%s' is not found in ced file"%_ch)
     
     # pick channels selected
     labels = [labels[m] for m in idx]
@@ -143,12 +144,15 @@ if __name__ == "__main__":
     draw.ellipse(cvt.zeroing(circle_ycoff(x = 0, y = 0, radius = coff * head_rad, y_coff=0.95)), fill = (255, 255, 255), outline = (0,0,0), width = 10)
 
     #font = ImageFont.truetype(os.path.join(home_dir, "Documents", "python", 'Arial.ttf'), 115)
-    font = ImageFont.truetype("Arial.ttf", 115)
+    #font = ImageFont.truetype("Arial.ttf", 115)
+    font = ImageFont.truetype("Arial.ttf", args.fontsize)
 
     for m in range(0, 64):
         x = math.sin(math.radians(theta[m])) * rads[m] * coff
         y = -1 * math.cos(math.radians(theta[m])) * rads[m] * coff
-        draw.ellipse(cvt.zeroing(circle(x = x, y = y, radius = 150)), fill=(255, 0, 0), outline=(255, 255, 255))
+        #draw.ellipse(cvt.zeroing(circle(x = x, y = y, radius = 150)), fill=(255, 0, 0), outline=(255, 255, 255))
+        draw.ellipse(cvt.zeroing(circle(x = x, y = y, radius = args.radius_ch)), fill=(255, 0, 0), outline=(255, 255, 255))
         draw.text(cvt.zeroing_2d((x, y)), text = cap_ch(labels[m]), anchor = 'mm', font = font)
 
-    img.save(os.path.join(home_dir, "Documents", "python", 'montage.tiff'))
+    #img.save(os.path.join(home_dir, "Documents", "python", 'montage.tiff'))
+    img.save(args.file)
